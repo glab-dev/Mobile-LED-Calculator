@@ -2045,7 +2045,7 @@
       background: #333;
       border: 2px solid #000;
       border-radius: 2px;
-      color: var(--text-color);
+      color: var(--primary);
       font-size: 14px;
       font-family: 'Permanent Marker', cursive;
       text-align: left;
@@ -2398,10 +2398,10 @@
       <div class="mobile-menu-section">
         <div class="mobile-menu-label">Configuration</div>
         <input type="text" id="configName" placeholder="Config name..." style="margin-bottom: 12px;">
-        <button class="mobile-menu-btn" onclick="saveConfiguration(); closeMobileMenu();">💾 Save Configuration</button>
-        <button class="mobile-menu-btn" onclick="document.getElementById('loadConfigInput').click()">📂 Load Configuration</button>
+        <button class="mobile-menu-btn" onclick="saveConfiguration(); closeMobileMenu();">⬇ Save Configuration</button>
+        <button class="mobile-menu-btn" onclick="document.getElementById('loadConfigInput').click()">⬆ Load Configuration</button>
         <input type="file" id="loadConfigInput" accept=".ledconfig" style="display: none;" onchange="loadConfiguration(event); closeMobileMenu();">
-        <button id="btnExportPDF" class="mobile-menu-btn" onclick="closeMobileMenu();">📄 Export PDF</button>
+        <button id="btnExportPDF" class="mobile-menu-btn" onclick="closeMobileMenu();">▤ Export PDF</button>
       </div>
       <div class="mobile-menu-section">
         <div class="mobile-menu-label">Custom Items</div>
@@ -3014,7 +3014,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 // ==================== APP VERSION & UPDATE CHECK ====================
-const APP_VERSION = '2.0.64';
+const APP_VERSION = '2.0.65';
 console.log('JavaScript loaded - v' + APP_VERSION);
 
 // Set version number in menu when DOM is ready
@@ -10370,10 +10370,13 @@ function getScreenAtPosition(mouseX, mouseY) {
 }
 
 
+// Flag to prevent duplicate event listener setup
+let canvasInteractivityInitialized = false;
+
 function setupCanvasViewInteractivity() {
   const canvas = document.getElementById('canvasView');
   if(!canvas) return;
-  
+
   // Initialize history with current position if history is empty
   if(canvasMoveHistory.length === 0) {
     const initialState = {
@@ -10384,15 +10387,11 @@ function setupCanvasViewInteractivity() {
     canvasMoveHistoryIndex = 0;
     updateCanvasUndoRedoButtons();
   }
-  
-  // Remove old listeners if they exist
-  canvas.onmousedown = null;
-  canvas.onmousemove = null;
-  canvas.onmouseup = null;
-  canvas.onmouseleave = null;
-  canvas.onkeydown = null;
-  canvas.onkeyup = null;
-  
+
+  // Prevent duplicate event listeners - only setup once
+  if(canvasInteractivityInitialized) return;
+  canvasInteractivityInitialized = true;
+
   canvas.style.cursor = 'grab';
   canvas.tabIndex = 0; // Make canvas focusable
   
@@ -11074,18 +11073,21 @@ function setupCanvasViewInteractivity() {
     if(draggedScreenId && screens[draggedScreenId]) {
       screens[draggedScreenId].data.canvasX = Math.round(newOffsetX);
       screens[draggedScreenId].data.canvasY = Math.round(newOffsetY);
-      
+
       // If this is the current screen, also update global variables
       if(draggedScreenId === currentScreenId) {
         canvasOffsetX = Math.round(newOffsetX);
         canvasOffsetY = Math.round(newOffsetY);
       }
-      
+
       // Always update the X/Y input fields for the selected/dragged screen
       document.getElementById('canvasX').value = Math.round(newOffsetX);
       document.getElementById('canvasY').value = Math.round(newOffsetY);
+
+      // Update coordinate display during drag
+      updateCanvasInfoDisplay();
     }
-    
+
     // Draw preview with snap guides
     drawCanvasPreviewWithGuides(newOffsetX, newOffsetY, snapMode);
   });
@@ -11289,6 +11291,9 @@ function setupCanvasViewInteractivity() {
         // Update position
         screens[draggedScreenId].data.canvasX = newOffsetX;
         screens[draggedScreenId].data.canvasY = newOffsetY;
+
+        // Update coordinate display during drag
+        updateCanvasInfoDisplay();
 
         // Simple redraw
         const ctx = canvas.getContext('2d');
