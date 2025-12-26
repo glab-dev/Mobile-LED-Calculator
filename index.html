@@ -864,6 +864,10 @@
       box-shadow: 4px 4px 0px 0px rgba(0,0,0,1);
       position: relative;
       overflow: visible;
+      /* Fix diagonal line rendering artifacts on Windows */
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      transform: translateZ(0);
     }
 
     .layout-title {
@@ -2052,6 +2056,9 @@
       cursor: pointer;
       box-shadow: 2px 2px 0px 0px rgba(0,0,0,1);
       transition: all 0.1s;
+      /* Fix diagonal line rendering artifacts on Windows */
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
     }
 
     .mobile-menu-btn:active {
@@ -2173,6 +2180,10 @@
       margin-bottom: 12px;
       font-size: 12px;
       color: var(--primary);
+      /* Fix diagonal line rendering artifacts on Windows */
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      transform: translateZ(0);
     }
 
     /* Hide desktop hints, show mobile hints */
@@ -3014,7 +3025,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 // ==================== APP VERSION & UPDATE CHECK ====================
-const APP_VERSION = '2.0.71';
+const APP_VERSION = '2.0.72';
 console.log('JavaScript loaded - v' + APP_VERSION);
 
 // Set version number in menu when DOM is ready
@@ -13228,8 +13239,13 @@ function exportPDF(){
           setTimeout(removeOverlay, 100);
         }
 
-        // Try native share API first (iOS/mobile - allows "Save to Files")
-        if(navigator.share && navigator.canShare) {
+        // Check if we're on a mobile device (touch-enabled and small screen or mobile user agent)
+        const isMobileDevice = (('ontouchstart' in window) || (navigator.maxTouchPoints > 0)) &&
+                               (window.innerWidth <= 1024 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+
+        // Try native share API only on mobile (iOS/Android - allows "Save to Files")
+        // Desktop browsers may support Share API but direct download is better UX
+        if(isMobileDevice && navigator.share && navigator.canShare) {
           const file = new File([pdfBlob], filename, { type: 'application/pdf' });
           if(navigator.canShare({ files: [file] })) {
             navigator.share({
@@ -13246,7 +13262,7 @@ function exportPDF(){
           }
         }
 
-        // Share API not available - use direct download
+        // Desktop or Share API not available - use direct download
         downloadPDF();
       }, 150);
     }
