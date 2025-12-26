@@ -3014,7 +3014,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 // ==================== APP VERSION & UPDATE CHECK ====================
-const APP_VERSION = '2.0.67';
+const APP_VERSION = '2.0.68';
 console.log('JavaScript loaded - v' + APP_VERSION);
 
 // Set version number in menu when DOM is ready
@@ -11193,6 +11193,10 @@ function setupCanvasViewInteractivity() {
       canvasViewStartOffsetX = offsetX;
       canvasViewStartOffsetY = offsetY;
 
+      // Update X/Y input boxes to show selected screen's position
+      document.getElementById('canvasX').value = offsetX;
+      document.getElementById('canvasY').value = offsetY;
+
       // Simple highlight without heavy operations
       const ctx = canvas.getContext('2d');
       if(cachedCanvasImageData) {
@@ -13360,9 +13364,9 @@ function exportResolumeXML(filename) {
     }
 
     // Get canvas dimensions
-    const canvas = document.getElementById('canvasPreview');
-    const canvasWidth = canvas.width;
-    const canvasHeight = canvas.height;
+    const canvas = document.getElementById('canvasView');
+    const canvasWidth = canvas ? canvas.width : 1920;
+    const canvasHeight = canvas ? canvas.height : 1080;
 
     // Generate unique IDs for Resolume
     function generateId() {
@@ -13375,18 +13379,20 @@ function exportResolumeXML(filename) {
 
     screenKeys.forEach(key => {
       const screen = screens[key];
-      const panel = allPanels[screen.panelType];
+      const screenData = screen.data || screen;
+      const panelType = screenData.panelType || 'CB5_MKII';
+      const panel = allPanels[panelType];
       if(!panel) return;
 
       // Calculate screen dimensions in pixels
       const panelResX = panel.res_x || 1;
       const panelResY = panel.res_y || 1;
-      const screenResX = screen.panelsWide * panelResX;
-      const screenResY = screen.panelsHigh * panelResY;
+      const screenResX = (screenData.panelsWide || 0) * panelResX;
+      const screenResY = (screenData.panelsHigh || 0) * panelResY;
 
       // Get screen position (default to 0,0 if not set)
-      const screenX = screen.canvasX || 0;
-      const screenY = screen.canvasY || 0;
+      const screenX = screenData.canvasX || 0;
+      const screenY = screenData.canvasY || 0;
 
       // Generate IDs for this slice
       const sliceId = generateId();
@@ -13454,13 +13460,15 @@ function exportResolumeXML(filename) {
 
     screenKeys.forEach(key => {
       const screen = screens[key];
-      const panel = allPanels[screen.panelType];
+      const screenData = screen.data || screen;
+      const panelType = screenData.panelType || 'CB5_MKII';
+      const panel = allPanels[panelType];
       if(!panel) return;
 
-      const screenResX = screen.panelsWide * (panel.res_x || 1);
-      const screenResY = screen.panelsHigh * (panel.res_y || 1);
-      const screenX = screen.canvasX || 0;
-      const screenY = screen.canvasY || 0;
+      const screenResX = (screenData.panelsWide || 0) * (panel.res_x || 1);
+      const screenResY = (screenData.panelsHigh || 0) * (panel.res_y || 1);
+      const screenX = screenData.canvasX || 0;
+      const screenY = screenData.canvasY || 0;
 
       totalWidth = Math.max(totalWidth, screenX + screenResX);
       totalHeight = Math.max(totalHeight, screenY + screenResY);
