@@ -1337,62 +1337,6 @@
       border-bottom: 2px solid #000;
     }
 
-    /* Number input wrapper with +/- buttons */
-    .number-input-wrapper {
-      display: flex;
-      align-items: stretch;
-      border: 2px solid #000;
-      box-shadow: 2px 2px 0px 0px rgba(0,0,0,1);
-      background: #333;
-      min-height: 48px;
-    }
-
-    .number-input-wrapper input {
-      flex: 1;
-      background: transparent;
-      border: none !important;
-      box-shadow: none !important;
-      color: #fff;
-      font-family: 'Permanent Marker', cursive;
-      font-size: 14px;
-      padding: 8px 4px;
-      text-align: center;
-      min-width: 30px;
-      min-height: auto;
-    }
-
-    .number-input-wrapper input:focus {
-      outline: none;
-      box-shadow: none !important;
-    }
-
-    .number-btn {
-      background: #222;
-      border: none;
-      color: var(--primary);
-      cursor: pointer;
-      padding: 0 10px;
-      font-size: 18px;
-      font-weight: bold;
-      min-width: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.1s;
-    }
-
-    .number-btn:active {
-      background: #444;
-    }
-
-    .number-btn-down {
-      border-right: 2px solid #000;
-    }
-
-    .number-btn-up {
-      border-left: 2px solid #000;
-    }
-
     .number-input-arrows button:hover {
       background: #333;
     }
@@ -3026,34 +2970,52 @@
 
         <!-- Row 2: X Pos, Y Pos, Snap, Fine -->
         <div style="display: flex; gap: 8px; align-items: stretch; margin-bottom: 8px;">
-          <label style="margin-bottom: 0; flex: 1;">
-            <span>X Pos</span>
-            <div class="number-input-wrapper">
-              <button type="button" class="number-btn number-btn-down" onclick="decrementInput('canvasX')">−</button>
-              <input type="number" id="canvasX" value="0" min="0" style="width: 100%; padding: 10px 8px; min-height: 48px; box-sizing: border-box; text-align: center;">
-              <button type="button" class="number-btn number-btn-up" onclick="incrementInput('canvasX')">+</button>
+          <div style="flex: 1;">
+            <span class="toggle-label" style="display: block; margin-bottom: 4px;">X Pos</span>
+            <div class="number-input-with-arrows">
+              <input type="number" id="canvasX" value="0" min="0">
+              <div class="number-input-arrows">
+                <button type="button" onclick="adjustCanvasPosition('canvasX', 1)">
+                  <span class="material-symbols-outlined" style="font-size: 14px;">keyboard_arrow_up</span>
+                </button>
+                <button type="button" onclick="adjustCanvasPosition('canvasX', -1)">
+                  <span class="material-symbols-outlined" style="font-size: 14px;">keyboard_arrow_down</span>
+                </button>
+              </div>
             </div>
-          </label>
-          <label style="margin-bottom: 0; flex: 1;">
-            <span>Y Pos</span>
-            <div class="number-input-wrapper">
-              <button type="button" class="number-btn number-btn-down" onclick="decrementInput('canvasY')">−</button>
-              <input type="number" id="canvasY" value="0" min="0" style="width: 100%; padding: 10px 8px; min-height: 48px; box-sizing: border-box; text-align: center;">
-              <button type="button" class="number-btn number-btn-up" onclick="incrementInput('canvasY')">+</button>
+          </div>
+          <div style="flex: 1;">
+            <span class="toggle-label" style="display: block; margin-bottom: 4px;">Y Pos</span>
+            <div class="number-input-with-arrows">
+              <input type="number" id="canvasY" value="0" min="0">
+              <div class="number-input-arrows">
+                <button type="button" onclick="adjustCanvasPosition('canvasY', 1)">
+                  <span class="material-symbols-outlined" style="font-size: 14px;">keyboard_arrow_up</span>
+                </button>
+                <button type="button" onclick="adjustCanvasPosition('canvasY', -1)">
+                  <span class="material-symbols-outlined" style="font-size: 14px;">keyboard_arrow_down</span>
+                </button>
+              </div>
             </div>
-          </label>
+          </div>
           <div style="display: flex; flex-direction: column; flex: 1;">
             <span class="toggle-label" style="display: block; margin-bottom: 4px; visibility: hidden;">Snap</span>
             <button type="button" class="toggle-btn active" id="snapModeBtn" onclick="toggleSnapMode()" style="width: 100%; padding: 10px 8px; min-height: 48px; box-sizing: border-box;">Snap</button>
           </div>
-          <label style="margin-bottom: 0; flex: 1;">
-            <span>Fine(px)</span>
-            <div class="number-input-wrapper">
-              <button type="button" class="number-btn number-btn-down" onclick="decrementInput('arrowKeyIncrement', 1)">−</button>
-              <input type="number" id="arrowKeyIncrement" value="10" min="1" max="100" style="width: 100%; padding: 10px 8px; min-height: 48px; box-sizing: border-box; text-align: center;">
-              <button type="button" class="number-btn number-btn-up" onclick="incrementInput('arrowKeyIncrement', 1)">+</button>
+          <div style="flex: 1;">
+            <span class="toggle-label" style="display: block; margin-bottom: 4px;">Fine(px)</span>
+            <div class="number-input-with-arrows">
+              <input type="number" id="arrowKeyIncrement" value="10" min="1" max="100">
+              <div class="number-input-arrows">
+                <button type="button" onclick="adjustNumberInput('arrowKeyIncrement', 1)">
+                  <span class="material-symbols-outlined" style="font-size: 14px;">keyboard_arrow_up</span>
+                </button>
+                <button type="button" onclick="adjustNumberInput('arrowKeyIncrement', -1)">
+                  <span class="material-symbols-outlined" style="font-size: 14px;">keyboard_arrow_down</span>
+                </button>
+              </div>
             </div>
-          </label>
+          </div>
         </div>
 
         <!-- Row 3: Filename -->
@@ -3082,7 +3044,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 // ==================== APP VERSION & UPDATE CHECK ====================
-const APP_VERSION = '2.0.75';
+const APP_VERSION = '2.0.76';
 console.log('JavaScript loaded - v' + APP_VERSION);
 
 // Set version number in menu when DOM is ready
@@ -3298,6 +3260,24 @@ function adjustNumberInput(inputId, delta) {
   }
 }
 
+// Adjust canvas X/Y position with arrow buttons
+function adjustCanvasPosition(inputId, delta) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+
+  // Use Fine(px) value as the step
+  const fineStep = parseInt(document.getElementById('arrowKeyIncrement').value) || 10;
+  const currentValue = parseInt(input.value) || 0;
+  const min = parseInt(input.min) || 0;
+  let newValue = currentValue + (delta * fineStep);
+
+  if (newValue < min) newValue = min;
+
+  input.value = newValue;
+  // Dispatch input event to trigger the handleCanvasPositionChange listener
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
 // Show arrows toggle
 let showArrowsEnabled = true;
 function toggleShowArrows() {
@@ -3415,35 +3395,6 @@ let snapModeEnabled = true;
 function toggleSnapMode() {
   snapModeEnabled = !snapModeEnabled;
   document.getElementById('snapModeBtn').classList.toggle('active', snapModeEnabled);
-}
-
-// Increment/Decrement input value functions for +/- buttons
-function incrementInput(inputId, step) {
-  const input = document.getElementById(inputId);
-  if(!input) return;
-
-  // For X/Y inputs, use the Fine value as the step
-  const increment = step || parseInt(document.getElementById('arrowKeyIncrement').value) || 10;
-  const currentVal = parseInt(input.value) || 0;
-  const max = input.max ? parseInt(input.max) : Infinity;
-  input.value = Math.min(currentVal + increment, max);
-
-  // Trigger input event to update canvas
-  input.dispatchEvent(new Event('input', { bubbles: true }));
-}
-
-function decrementInput(inputId, step) {
-  const input = document.getElementById(inputId);
-  if(!input) return;
-
-  // For X/Y inputs, use the Fine value as the step
-  const decrement = step || parseInt(document.getElementById('arrowKeyIncrement').value) || 10;
-  const currentVal = parseInt(input.value) || 0;
-  const min = input.min ? parseInt(input.min) : 0;
-  input.value = Math.max(currentVal - decrement, min);
-
-  // Trigger input event to update canvas
-  input.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
 // CB5 Half row toggle
@@ -5772,8 +5723,8 @@ function calculate(){
   
   // Use the panel-specific limit if available, otherwise use capacity-based calculation
   // The auto value is the MINIMUM of capacity-based calculation and panel-specific limit
-  // NOTE: Don't use panel-specific limit when mixing full and half panels
-  const panelSpecificDataLimit = (!hasCB5HalfRow && p.max_panels_per_data) ? p.max_panels_per_data : null;
+  // Apply panel's max_panels_per_data limit even when mixing with half panels
+  const panelSpecificDataLimit = p.max_panels_per_data || null;
   const suggestedPanelsPerData = panelSpecificDataLimit
     ? Math.min(capacityBasedPanelsPerData, panelSpecificDataLimit)
     : capacityBasedPanelsPerData;
@@ -6599,8 +6550,8 @@ function generateLayout(mode){
   }
   
   // Apply panel-specific max_panels_per_data limit (same logic as calculate())
-  // NOTE: Don't use panel-specific limit when mixing full and half panels
-  const panelSpecificDataLimit = (!hasCB5HalfRow && p.max_panels_per_data) ? p.max_panels_per_data : null;
+  // Apply panel's max_panels_per_data limit even when mixing with half panels
+  const panelSpecificDataLimit = p.max_panels_per_data || null;
   const suggestedPanelsPerData = panelSpecificDataLimit
     ? Math.min(capacityBasedPanelsPerData, panelSpecificDataLimit)
     : capacityBasedPanelsPerData;
@@ -9953,8 +9904,8 @@ function updateSuggestedDataLimit(){
   }
 
   // Use the panel-specific limit if available, otherwise use capacity-based calculation
-  // NOTE: Don't use panel-specific limit when mixing full and half panels
-  const panelSpecificLimit = (!hasCB5HalfRow && p.max_panels_per_data) ? p.max_panels_per_data : null;
+  // Apply panel's max_panels_per_data limit even when mixing with half panels
+  const panelSpecificLimit = p.max_panels_per_data || null;
   const suggested = panelSpecificLimit
     ? Math.min(capacityBasedLimit, panelSpecificLimit)
     : capacityBasedLimit;
