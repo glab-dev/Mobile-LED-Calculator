@@ -1463,6 +1463,40 @@
       margin-bottom: 12px;
     }
 
+    .manage-custom-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 12px;
+      border-bottom: 2px solid #444;
+      padding-bottom: 8px;
+    }
+
+    .manage-tab {
+      flex: 1;
+      padding: 8px 12px;
+      background: #333;
+      border: 2px solid #000;
+      color: #888;
+      font-family: 'Permanent Marker', cursive;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .manage-tab.active {
+      background: var(--primary);
+      color: #000;
+    }
+
+    .manage-tab:hover:not(.active) {
+      background: #444;
+      color: #fff;
+    }
+
+    .manage-tab-content {
+      min-height: 100px;
+    }
+
     .modal-footer {
       display: flex;
       justify-content: flex-end;
@@ -1511,20 +1545,23 @@
       margin-top: 2px;
     }
     
-    .checkbox-group {
+    .checkbox-group,
+    .modal-checkbox-group {
       display: flex;
       align-items: center;
       gap: 6px;
       margin-bottom: 8px;
       font-size: 12px;
     }
-    
-    .checkbox-group input[type="checkbox"] {
+
+    .checkbox-group input[type="checkbox"],
+    .modal-checkbox-group input[type="checkbox"] {
       width: 14px;
       height: 14px;
     }
-    
-    .checkbox-group label {
+
+    .checkbox-group label,
+    .modal-checkbox-group label {
       color: #e0e0e0;
       font-size: 12px;
     }
@@ -2313,7 +2350,7 @@
         <label>Processor Name</label>
         <input type="text" id="customProcessorName" placeholder="e.g., My Custom Processor">
       </div>
-      
+
       <div class="modal-input-row">
         <div class="modal-input-group">
           <label>Number of 10G Ports</label>
@@ -2324,17 +2361,41 @@
           <input type="number" id="customProcessor1gPorts" placeholder="e.g., 8" value="0">
         </div>
       </div>
-      
+
       <div class="modal-input-group">
         <label>Max Pixels Per Port (1G)</label>
         <input type="number" id="customProcessorPixelsPer1g" placeholder="e.g., 525000">
         <div class="hint">Base capacity for 60Hz @ 8-bit</div>
       </div>
-      
+
       <div class="modal-input-group">
         <label>Max Pixels Per Port (10G)</label>
         <input type="number" id="customProcessorPixelsPer10g" placeholder="e.g., 2250000">
         <div class="hint">Optional - only if processor has 10G ports</div>
+      </div>
+
+      <div class="modal-input-group">
+        <label>Max Input Resolution</label>
+        <input type="text" id="customProcessorMaxResolution" placeholder="e.g., 4096 x 2160">
+        <div class="hint">Optional - max input resolution (width x height)</div>
+      </div>
+
+      <div class="modal-input-group modal-checkbox-group">
+        <input type="checkbox" id="customProcessorUsesDistBox" onchange="toggleDistBoxFields()">
+        <label for="customProcessorUsesDistBox">Uses Distribution Box</label>
+      </div>
+
+      <div id="distBoxFields" style="display: none;">
+        <div class="modal-input-row">
+          <div class="modal-input-group">
+            <label>Distribution Box Name</label>
+            <input type="text" id="customProcessorDistBoxName" placeholder="e.g., XD, CVT">
+          </div>
+          <div class="modal-input-group">
+            <label>Ports Per Dist Box</label>
+            <input type="number" id="customProcessorDistBoxPorts" placeholder="e.g., 10" value="10">
+          </div>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -2352,7 +2413,12 @@
       <button class="modal-close" onclick="closeManageCustomModal()">&times;</button>
     </div>
     <div class="modal-body">
-      <div id="manageCustomContent"></div>
+      <div class="manage-custom-tabs">
+        <button class="manage-tab active" id="manageTabPanels" onclick="switchManageTab('panels')">Panels</button>
+        <button class="manage-tab" id="manageTabProcessors" onclick="switchManageTab('processors')">Processors</button>
+      </div>
+      <div id="manageCustomPanelsContent" class="manage-tab-content"></div>
+      <div id="manageCustomProcessorsContent" class="manage-tab-content" style="display: none;"></div>
     </div>
     <div class="modal-footer">
       <button class="btn-primary" onclick="closeManageCustomModal()">Done</button>
@@ -2407,7 +2473,7 @@
         <div class="mobile-menu-label">Custom Items</div>
         <button class="mobile-menu-btn" onclick="openCustomPanelModal(); closeMobileMenu();">+ Add Custom Panel</button>
         <button class="mobile-menu-btn" onclick="openCustomProcessorModal(); closeMobileMenu();">+ Add Custom Processor</button>
-        <button class="mobile-menu-btn" onclick="openManageCustomModal('panels'); closeMobileMenu();">Manage Custom Items</button>
+        <button class="mobile-menu-btn" onclick="openManageCustomModal(); closeMobileMenu();">Manage Custom Items</button>
       </div>
       <div class="mobile-menu-section">
         <div class="mobile-menu-label">App Info</div>
@@ -3044,7 +3110,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 // ==================== APP VERSION & UPDATE CHECK ====================
-const APP_VERSION = '2.0.76';
+const APP_VERSION = '2.0.77';
 console.log('JavaScript loaded - v' + APP_VERSION);
 
 // Set version number in menu when DOM is ready
@@ -5757,7 +5823,7 @@ function calculate(){
   const processorId = document.getElementById('processor').value;
   let distributionBoxName = '';
   let distributionCount = 0;
-  
+
   if(processorId === 'Brompton_SX40' && portsNeeded > 0) {
     const baseDistributionCount = Math.ceil(portsNeeded / 10);
     distributionCount = redundancy ? baseDistributionCount * 2 : baseDistributionCount;
@@ -5766,6 +5832,12 @@ function calculate(){
     const baseDistributionCount = Math.ceil(portsNeeded / 10);
     distributionCount = redundancy ? baseDistributionCount * 2 : baseDistributionCount;
     distributionBoxName = 'NovaStar CVT';
+  } else if(pr.uses_distribution_box && pr.distribution_box_name && portsNeeded > 0) {
+    // Custom processor with distribution box
+    const portsPerBox = pr.distribution_box_ports || 10;
+    const baseDistributionCount = Math.ceil(portsNeeded / portsPerBox);
+    distributionCount = redundancy ? baseDistributionCount * 2 : baseDistributionCount;
+    distributionBoxName = pr.distribution_box_name;
   }
 
   // Build HTML output matching the example format
@@ -13772,7 +13844,7 @@ function saveCustomPanel() {
 function openCustomProcessorModal(editKey = null) {
   const modal = document.getElementById('customProcessorModal');
   const title = document.getElementById('customProcessorModalTitle');
-  
+
   if(editKey) {
     title.textContent = 'Edit Custom Processor';
     const proc = customProcessors[editKey];
@@ -13781,7 +13853,15 @@ function openCustomProcessorModal(editKey = null) {
     document.getElementById('customProcessor1gPorts').value = proc.ports_1g || 0;
     document.getElementById('customProcessorPixelsPer1g').value = proc.base_pixels_1g || '';
     document.getElementById('customProcessorPixelsPer10g').value = proc.pixels_per_10g || '';
-    
+    document.getElementById('customProcessorMaxResolution').value = proc.max_input_resolution || '';
+
+    // Distribution box fields
+    const usesDistBox = proc.uses_distribution_box || false;
+    document.getElementById('customProcessorUsesDistBox').checked = usesDistBox;
+    document.getElementById('customProcessorDistBoxName').value = proc.distribution_box_name || '';
+    document.getElementById('customProcessorDistBoxPorts').value = proc.distribution_box_ports || 10;
+    document.getElementById('distBoxFields').style.display = usesDistBox ? 'block' : 'none';
+
     modal.dataset.editKey = editKey;
   } else {
     title.textContent = 'Add Custom Processor';
@@ -13790,11 +13870,24 @@ function openCustomProcessorModal(editKey = null) {
     document.getElementById('customProcessor1gPorts').value = 0;
     document.getElementById('customProcessorPixelsPer1g').value = '';
     document.getElementById('customProcessorPixelsPer10g').value = '';
-    
+    document.getElementById('customProcessorMaxResolution').value = '';
+
+    // Reset distribution box fields
+    document.getElementById('customProcessorUsesDistBox').checked = false;
+    document.getElementById('customProcessorDistBoxName').value = '';
+    document.getElementById('customProcessorDistBoxPorts').value = 10;
+    document.getElementById('distBoxFields').style.display = 'none';
+
     delete modal.dataset.editKey;
   }
-  
+
   modal.classList.add('active');
+}
+
+function toggleDistBoxFields() {
+  const checkbox = document.getElementById('customProcessorUsesDistBox');
+  const fieldsDiv = document.getElementById('distBoxFields');
+  fieldsDiv.style.display = checkbox.checked ? 'block' : 'none';
 }
 
 function closeCustomProcessorModal() {
@@ -13804,23 +13897,29 @@ function closeCustomProcessorModal() {
 
 function saveCustomProcessor() {
   const name = document.getElementById('customProcessorName').value.trim();
-  
+
   if(!name) {
     alert('Please enter processor name');
     return;
   }
-  
+
   const modal = document.getElementById('customProcessorModal');
   const editKey = modal.dataset.editKey;
   const key = editKey || `CUSTOM_${name.replace(/\s+/g, '_')}`;
-  
+
   const ports10g = parseInt(document.getElementById('customProcessor10gPorts').value) || 0;
   const ports1g = parseInt(document.getElementById('customProcessor1gPorts').value) || 0;
   const pixelsPer1g = parseInt(document.getElementById('customProcessorPixelsPer1g').value) || 525000;
   const pixelsPer10g = parseInt(document.getElementById('customProcessorPixelsPer10g').value) || 0;
-  
+  const maxResolution = document.getElementById('customProcessorMaxResolution').value.trim();
+
+  // Distribution box fields
+  const usesDistBox = document.getElementById('customProcessorUsesDistBox').checked;
+  const distBoxName = document.getElementById('customProcessorDistBoxName').value.trim();
+  const distBoxPorts = parseInt(document.getElementById('customProcessorDistBoxPorts').value) || 10;
+
   const totalPixels = (ports1g * pixelsPer1g) + (ports10g * (pixelsPer10g || pixelsPer1g * 4));
-  
+
   const processor = {
     name: name,
     ports_10g: ports10g,
@@ -13831,19 +13930,23 @@ function saveCustomProcessor() {
     pixels_per_10g: pixelsPer10g || null,
     total_pixels: totalPixels,
     outputs: `${ports1g > 0 ? ports1g + ' × 1G' : ''}${ports1g > 0 && ports10g > 0 ? ' + ' : ''}${ports10g > 0 ? ports10g + ' × 10G' : ''}`,
+    max_input_resolution: maxResolution || null,
+    uses_distribution_box: usesDistBox,
+    distribution_box_name: usesDistBox ? distBoxName : null,
+    distribution_box_ports: usesDistBox ? distBoxPorts : null,
     custom: true
   };
-  
+
   customProcessors[key] = processor;
   saveCustomProcessors();
   updateProcessorDropdowns();
-  
+
   // Select the new/edited processor
   const processorSelect = document.getElementById('processor');
   if(processorSelect) {
     processorSelect.value = key;
   }
-  
+
   closeCustomProcessorModal();
   alert(`Custom processor "${name}" saved successfully!`);
 }
@@ -13871,62 +13974,78 @@ function deleteCustomProcessor(key) {
 }
 
 // Manage Custom Items Modal
-function openManageCustomModal(type) {
+function openManageCustomModal() {
   const modal = document.getElementById('manageCustomModal');
-  const title = document.getElementById('manageCustomModalTitle');
-  const content = document.getElementById('manageCustomContent');
-  
-  if(type === 'panels') {
-    title.textContent = 'Manage Custom Panels';
-    let html = '';
-    
-    if(Object.keys(customPanels).length === 0) {
-      html = '<p style="color: #888; text-align: center; padding: 20px;">No custom panels saved yet.</p>';
-    } else {
-      html = '<div class="custom-item-list">';
-      Object.keys(customPanels).forEach(key => {
-        const panel = customPanels[key];
-        html += `
-          <div class="custom-item">
-            <div class="custom-item-name">${panel.brand} ${panel.name}</div>
-            <div class="custom-item-actions">
-              <button class="btn-small" onclick="openCustomPanelModal('${key}')">Edit</button>
-              <button class="btn-small danger" onclick="deleteCustomPanel('${key}')">Delete</button>
-            </div>
+
+  // Populate panels tab
+  const panelsContent = document.getElementById('manageCustomPanelsContent');
+  let panelsHtml = '';
+  if(Object.keys(customPanels).length === 0) {
+    panelsHtml = '<p style="color: #888; text-align: center; padding: 20px;">No custom panels saved yet.</p>';
+  } else {
+    panelsHtml = '<div class="custom-item-list">';
+    Object.keys(customPanels).forEach(key => {
+      const panel = customPanels[key];
+      panelsHtml += `
+        <div class="custom-item">
+          <div class="custom-item-name">${panel.brand} ${panel.name}</div>
+          <div class="custom-item-actions">
+            <button class="btn-small" onclick="openCustomPanelModal('${key}'); closeManageCustomModal();">Edit</button>
+            <button class="btn-small danger" onclick="deleteCustomPanel('${key}')">Delete</button>
           </div>
-        `;
-      });
-      html += '</div>';
-    }
-    
-    content.innerHTML = html;
-  } else if(type === 'processors') {
-    title.textContent = 'Manage Custom Processors';
-    let html = '';
-    
-    if(Object.keys(customProcessors).length === 0) {
-      html = '<p style="color: #888; text-align: center; padding: 20px;">No custom processors saved yet.</p>';
-    } else {
-      html = '<div class="custom-item-list">';
-      Object.keys(customProcessors).forEach(key => {
-        const proc = customProcessors[key];
-        html += `
-          <div class="custom-item">
-            <div class="custom-item-name">${proc.name}</div>
-            <div class="custom-item-actions">
-              <button class="btn-small" onclick="openCustomProcessorModal('${key}')">Edit</button>
-              <button class="btn-small danger" onclick="deleteCustomProcessor('${key}')">Delete</button>
-            </div>
-          </div>
-        `;
-      });
-      html += '</div>';
-    }
-    
-    content.innerHTML = html;
+        </div>
+      `;
+    });
+    panelsHtml += '</div>';
   }
-  
+  panelsContent.innerHTML = panelsHtml;
+
+  // Populate processors tab
+  const processorsContent = document.getElementById('manageCustomProcessorsContent');
+  let processorsHtml = '';
+  if(Object.keys(customProcessors).length === 0) {
+    processorsHtml = '<p style="color: #888; text-align: center; padding: 20px;">No custom processors saved yet.</p>';
+  } else {
+    processorsHtml = '<div class="custom-item-list">';
+    Object.keys(customProcessors).forEach(key => {
+      const proc = customProcessors[key];
+      processorsHtml += `
+        <div class="custom-item">
+          <div class="custom-item-name">${proc.name}</div>
+          <div class="custom-item-actions">
+            <button class="btn-small" onclick="openCustomProcessorModal('${key}'); closeManageCustomModal();">Edit</button>
+            <button class="btn-small danger" onclick="deleteCustomProcessor('${key}')">Delete</button>
+          </div>
+        </div>
+      `;
+    });
+    processorsHtml += '</div>';
+  }
+  processorsContent.innerHTML = processorsHtml;
+
+  // Reset to panels tab
+  switchManageTab('panels');
+
   modal.classList.add('active');
+}
+
+function switchManageTab(tab) {
+  const panelsTab = document.getElementById('manageTabPanels');
+  const processorsTab = document.getElementById('manageTabProcessors');
+  const panelsContent = document.getElementById('manageCustomPanelsContent');
+  const processorsContent = document.getElementById('manageCustomProcessorsContent');
+
+  if(tab === 'panels') {
+    panelsTab.classList.add('active');
+    processorsTab.classList.remove('active');
+    panelsContent.style.display = 'block';
+    processorsContent.style.display = 'none';
+  } else {
+    panelsTab.classList.remove('active');
+    processorsTab.classList.add('active');
+    panelsContent.style.display = 'none';
+    processorsContent.style.display = 'block';
+  }
 }
 
 function closeManageCustomModal() {
